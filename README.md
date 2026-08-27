@@ -9,7 +9,7 @@ hecho a mano, ahora aplicando las convenciones y herramientas del framework.
 ![Laravel](https://img.shields.io/badge/Laravel-12-FF2D20?logo=laravel&logoColor=white)
 ![PHP](https://img.shields.io/badge/PHP-8.2+-777BB4?logo=php&logoColor=white)
 ![MySQL](https://img.shields.io/badge/MySQL-8-4479A1?logo=mysql&logoColor=white)
-![Tests](https://github.com/TU-USUARIO/inventario-ventas/actions/workflows/tests.yml/badge.svg)
+![Tests](https://github.com/junniors-dev/inventario-ventas/actions/workflows/tests.yml/badge.svg)
 ![Tests](https://img.shields.io/badge/tests-173%20passing-success)
 
 ---
@@ -153,7 +153,7 @@ excepción durante el desarrollo en lugar de degradar el rendimiento en silencio
 ### Pasos
 
 ```bash
-git clone https://github.com/TU-USUARIO/inventario-ventas.git
+git clone https://github.com/junniors-dev/inventario-ventas.git
 cd inventario-ventas
 ```
 
