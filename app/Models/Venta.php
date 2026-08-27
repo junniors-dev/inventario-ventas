@@ -21,6 +21,8 @@ class Venta extends Model
     protected $fillable = [
         'codigo',
         'user_id',
+        'cliente_nombre',
+        'cliente_documento',
         'total',
         'metodo_pago',
         'estado',
@@ -74,7 +76,12 @@ class Venta extends Model
     protected function filtradas(Builder $query, array $filtros): Builder
     {
         return $query
-            ->when($filtros['buscar'] ?? null, fn (Builder $query, string $codigo) => $query->where('codigo', 'like', "%{$codigo}%"))
+            ->when($filtros['buscar'] ?? null, fn (Builder $query, string $termino) => $query->where(
+                fn (Builder $query) => $query
+                    ->where('codigo', 'like', "%{$termino}%")
+                    ->orWhere('cliente_nombre', 'like', "%{$termino}%")
+                    ->orWhere('cliente_documento', $termino)
+            ))
             ->when($filtros['desde'] ?? null, fn (Builder $query, Carbon $desde) => $query->where('created_at', '>=', $desde->startOfDay()))
             ->when($filtros['hasta'] ?? null, fn (Builder $query, Carbon $hasta) => $query->where('created_at', '<=', $hasta->endOfDay()))
             ->when($filtros['vendedor'] ?? null, fn (Builder $query, int $id) => $query->where('user_id', $id))

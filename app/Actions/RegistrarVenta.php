@@ -29,10 +29,11 @@ class RegistrarVenta
      * podrían leer el mismo stock y venderlo dos veces.
      *
      * @param  array<int, array{producto_id: int, cantidad: int}>  $lineas
+     * @param  array{nombre?: ?string, documento?: ?string}  $cliente
      *
      * @throws StockInsuficienteException
      */
-    public function handle(User $usuario, array $lineas, MetodoPago $metodoPago): Venta
+    public function handle(User $usuario, array $lineas, MetodoPago $metodoPago, array $cliente = []): Venta
     {
         // El correlativo se deriva del último código existente, así que dos
         // ventas simultáneas pueden calcular el mismo número. El índice UNIQUE
@@ -42,7 +43,7 @@ class RegistrarVenta
 
         while (true) {
             try {
-                return $this->registrar($usuario, $lineas, $metodoPago);
+                return $this->registrar($usuario, $lineas, $metodoPago, $cliente);
             } catch (UniqueConstraintViolationException $e) {
                 if (++$intentos >= self::MAX_INTENTOS) {
                     throw $e;
@@ -53,12 +54,13 @@ class RegistrarVenta
 
     /**
      * @param  array<int, array{producto_id: int, cantidad: int}>  $lineas
+     * @param  array{nombre?: ?string, documento?: ?string}  $cliente
      *
      * @throws StockInsuficienteException
      */
-    private function registrar(User $usuario, array $lineas, MetodoPago $metodoPago): Venta
+    private function registrar(User $usuario, array $lineas, MetodoPago $metodoPago, array $cliente): Venta
     {
-        return DB::transaction(function () use ($usuario, $lineas, $metodoPago): Venta {
+        return DB::transaction(function () use ($usuario, $lineas, $metodoPago, $cliente): Venta {
             // Agrupar por producto: si la misma referencia llega dos veces,
             // se valida contra la cantidad total, no línea por línea.
             $cantidades = [];
@@ -78,6 +80,8 @@ class RegistrarVenta
             $venta = Venta::create([
                 'codigo' => $this->siguienteCodigo(),
                 'user_id' => $usuario->id,
+                'cliente_nombre' => $cliente['nombre'] ?? null,
+                'cliente_documento' => $cliente['documento'] ?? null,
                 'total' => 0,
                 'metodo_pago' => $metodoPago,
                 'estado' => EstadoVenta::Completada,

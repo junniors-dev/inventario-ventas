@@ -17,7 +17,7 @@
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-5">
 
             {{-- KPIs --}}
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
                 <x-kpi-card label="Ventas del mes" :value="'S/ '.number_format($ventasMes, 2)" tone="accent">
                     <x-slot name="icon"><path stroke-linecap="round" stroke-linejoin="round" d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></x-slot>
                     <x-slot name="footnote">
@@ -49,6 +49,11 @@
                     <x-slot name="icon"><circle cx="12" cy="12" r="9"/><path stroke-linecap="round" stroke-linejoin="round" d="M12 7v5l3 2"/></x-slot>
                     <x-slot name="footnote"><span class="text-gray-500">S/ {{ number_format($totalHoy, 2) }} acumulado</span></x-slot>
                 </x-kpi-card>
+
+                <x-kpi-card label="Ticket promedio" :value="'S/ '.number_format($ticketPromedio, 2)" tone="accent">
+                    <x-slot name="icon"><path stroke-linecap="round" stroke-linejoin="round" d="M9 7h6M9 11h6M9 15h3"/><path stroke-linecap="round" stroke-linejoin="round" d="M6 2h12a1 1 0 0 1 1 1v18l-3-2-2 2-2-2-2 2-2-2-3 2V3a1 1 0 0 1 1-1Z"/></x-slot>
+                    <x-slot name="footnote"><span class="text-gray-500">por venta este mes</span></x-slot>
+                </x-kpi-card>
             </div>
 
             {{-- Gráficas --}}
@@ -76,6 +81,51 @@
                             <canvas id="graficaTop" role="img"
                                     aria-label="Gráfico de barras horizontales con los cinco productos más vendidos"></canvas>
                         </div>
+                    @endif
+                </div>
+            </div>
+
+            {{-- Cobros por método de pago y ranking de vendedores --}}
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <div class="bg-white dark:bg-gray-800 shadow-sm sm:rounded-lg p-5">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="font-semibold text-gray-900 dark:text-gray-100">Cobros por método de pago</h3>
+                        <span class="text-xs text-gray-500">este mes</span>
+                    </div>
+                    <div class="h-56">
+                        <canvas id="graficaPagos" role="img"
+                                aria-label="Gráfico de dona con el reparto de lo cobrado este mes entre efectivo, Yape, Plin y transferencia"></canvas>
+                    </div>
+                </div>
+
+                <div class="bg-white dark:bg-gray-800 shadow-sm sm:rounded-lg p-5">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="font-semibold text-gray-900 dark:text-gray-100">Ranking de vendedores</h3>
+                        <span class="text-xs text-gray-500">este mes</span>
+                    </div>
+
+                    @if ($rankingVendedores->isEmpty())
+                        <p class="py-12 text-center text-sm text-gray-400">Todavía no hay ventas este mes.</p>
+                    @else
+                        <ol class="space-y-3">
+                            @foreach ($rankingVendedores as $puesto => $vendedor)
+                                <li class="flex items-center gap-3">
+                                    <span class="grid h-7 w-7 shrink-0 place-items-center rounded-full text-xs font-bold
+                                        {{ $puesto === 0
+                                            ? 'bg-emerald-600 text-white'
+                                            : 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300' }}">
+                                        {{ $puesto + 1 }}
+                                    </span>
+                                    <div class="min-w-0 flex-1">
+                                        <p class="truncate text-sm font-medium text-gray-900 dark:text-gray-100">{{ $vendedor['nombre'] }}</p>
+                                        <p class="text-xs text-gray-500 tabular-nums">{{ $vendedor['ventas'] }} {{ Str::plural('venta', $vendedor['ventas']) }}</p>
+                                    </div>
+                                    <span class="shrink-0 text-sm font-semibold tabular-nums text-gray-900 dark:text-gray-100">
+                                        S/ {{ number_format($vendedor['total'], 2) }}
+                                    </span>
+                                </li>
+                            @endforeach
+                        </ol>
                     @endif
                 </div>
             </div>
@@ -155,6 +205,44 @@
                         },
                     },
                 });
+
+                // Reparto por método de pago. Cada método conserva su color
+                // aunque cambie de posición entre un mes y otro.
+                const pagos = @json($porMetodoPago);
+                if (pagos.some((p) => p.total > 0)) {
+                    new Chart(document.getElementById('graficaPagos'), {
+                        type: 'doughnut',
+                        data: {
+                            labels: pagos.map((p) => p.etiqueta),
+                            datasets: [{
+                                data: pagos.map((p) => p.total),
+                                backgroundColor: ['#059669', '#7c3aed', '#0891b2', '#ea580c'],
+                                borderWidth: 2,
+                                borderColor: oscuro ? '#1f2937' : '#ffffff',
+                            }],
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            cutout: '58%',
+                            plugins: {
+                                legend: { position: 'right', labels: { color: ejes, boxWidth: 12, padding: 14 } },
+                                tooltip: {
+                                    callbacks: {
+                                        label: (c) => {
+                                            const suma = c.dataset.data.reduce((a, b) => a + b, 0);
+                                            const parte = suma > 0 ? Math.round((c.parsed / suma) * 100) : 0;
+                                            return `${c.label}: ${soles(c.parsed)} (${parte}%)`;
+                                        },
+                                    },
+                                },
+                            },
+                        },
+                    });
+                } else {
+                    document.getElementById('graficaPagos').closest('div').innerHTML =
+                        '<p class="py-12 text-center text-sm text-gray-400">Todavía no hay cobros este mes.</p>';
+                }
 
                 const canvasTop = document.getElementById('graficaTop');
                 if (canvasTop) {

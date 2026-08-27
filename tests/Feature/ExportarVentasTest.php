@@ -51,7 +51,7 @@ test('el CSV incluye la cabecera y las ventas', function () {
 
     $csv = csvDe($this->actingAs($this->admin)->get(route('ventas.exportar')));
 
-    expect($csv)->toContain('Comprobante;Fecha;Hora;Vendedor')
+    expect($csv)->toContain('Comprobante;Fecha;Hora;Cliente;Documento;Vendedor')
         ->and($csv)->toContain($venta->codigo)
         ->and($csv)->toContain('María Quispe')
         ->and($csv)->toContain('Yape')

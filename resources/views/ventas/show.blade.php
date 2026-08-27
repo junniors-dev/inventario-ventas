@@ -50,6 +50,18 @@
                     </div>
                 </div>
 
+                @if ($venta->cliente_nombre || $venta->cliente_documento)
+                    <div class="border-b border-gray-200 dark:border-gray-700 px-6 py-4">
+                        <p class="text-xs uppercase tracking-wide text-gray-500">Cliente</p>
+                        <p class="mt-1 text-sm font-medium text-gray-900 dark:text-gray-100">
+                            {{ $venta->cliente_nombre ?: 'Sin nombre' }}
+                            @if ($venta->cliente_documento)
+                                <span class="ml-2 font-mono text-xs font-normal text-gray-500">{{ $venta->cliente_documento }}</span>
+                            @endif
+                        </p>
+                    </div>
+                @endif
+
                 @if ($venta->estado === \App\Enums\EstadoVenta::Anulada)
                     <div class="border-b border-gray-200 dark:border-gray-700 bg-red-50 dark:bg-red-950/40 px-6 py-3">
                         <p class="text-sm text-red-700 dark:text-red-400">

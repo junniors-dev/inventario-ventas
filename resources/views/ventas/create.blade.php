@@ -174,6 +174,31 @@
                     </div>
 
                     <div class="border-t border-gray-200 dark:border-gray-700 p-4 space-y-4">
+                        {{-- Datos del cliente: plegados, porque la mayoría de
+                             ventas son a público general y no los necesitan. --}}
+                        <div x-data="{ abierto: {{ $errors->hasAny(['cliente_nombre', 'cliente_documento']) || old('cliente_nombre') ? 'true' : 'false' }} }">
+                            <button type="button" @click="abierto = !abierto"
+                                    class="flex w-full items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">
+                                <svg class="h-3.5 w-3.5 transition-transform" :class="abierto && 'rotate-90'"
+                                     fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="m9 5 7 7-7 7"/>
+                                </svg>
+                                Datos del cliente
+                                <span class="font-normal normal-case tracking-normal text-gray-400">(opcional)</span>
+                            </button>
+
+                            <div x-show="abierto" x-cloak x-transition.opacity.duration.150ms class="mt-2 space-y-2">
+                                <input type="text" name="cliente_nombre" value="{{ old('cliente_nombre') }}"
+                                       placeholder="Nombre o razón social" autocomplete="off"
+                                       aria-label="Nombre del cliente"
+                                       class="w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-300 text-sm focus:border-emerald-500 focus:ring-emerald-500">
+                                <input type="text" name="cliente_documento" value="{{ old('cliente_documento') }}"
+                                       placeholder="DNI o RUC" autocomplete="off"
+                                       aria-label="Documento del cliente"
+                                       class="w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-300 text-sm font-mono focus:border-emerald-500 focus:ring-emerald-500">
+                            </div>
+                        </div>
+
                         <div>
                             <span class="mb-2 block text-[11px] font-semibold uppercase tracking-wide text-gray-500">Método de pago</span>
                             <div class="grid grid-cols-2 gap-1.5">

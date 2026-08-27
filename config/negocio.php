@@ -17,4 +17,17 @@ return [
     'direccion' => env('NEGOCIO_DIRECCION'),
     'telefono' => env('NEGOCIO_TELEFONO'),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Impuesto general a las ventas
+    |--------------------------------------------------------------------------
+    |
+    | Los precios del catálogo ya incluyen el IGV, como es habitual en el
+    | comercio minorista peruano. El comprobante lo desglosa hacia atrás:
+    | la base imponible sale de dividir el total entre 1 + la tasa.
+    |
+    */
+
+    'igv' => (float) env('NEGOCIO_IGV', 0.18),
+
 ];

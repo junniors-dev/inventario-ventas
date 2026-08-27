@@ -3,6 +3,7 @@
 namespace App\Actions;
 
 use App\Enums\EstadoVenta;
+use App\Enums\MetodoPago;
 use App\Models\DetalleVenta;
 use App\Models\Producto;
 use App\Models\Venta;
@@ -22,8 +23,11 @@ class ObtenerMetricasDashboard
      *     totalHoy: float,
      *     productosActivos: int,
      *     stockBajo: int,
+     *     ticketPromedio: float,
      *     serieMensual: Collection,
      *     masVendidos: Collection,
+     *     porMetodoPago: Collection,
+     *     rankingVendedores: Collection,
      *     productosStockBajo: Collection
      * }
      */
@@ -32,9 +36,9 @@ class ObtenerMetricasDashboard
         $inicioMes = now()->startOfMonth();
         $inicioMesAnterior = now()->subMonthNoOverflow()->startOfMonth();
 
-        $totalMes = (float) Venta::completadas()
-            ->where('created_at', '>=', $inicioMes)
-            ->sum('total');
+        $ventasDelMes = Venta::completadas()->where('created_at', '>=', $inicioMes);
+        $totalMes = (float) (clone $ventasDelMes)->sum('total');
+        $numeroVentasMes = (clone $ventasDelMes)->count();
 
         $totalMesAnterior = (float) Venta::completadas()
             ->whereBetween('created_at', [$inicioMesAnterior, $inicioMes])
@@ -51,10 +55,51 @@ class ObtenerMetricasDashboard
             'totalHoy' => (float) (clone $ventasDeHoy)->sum('total'),
             'productosActivos' => Producto::count(),
             'stockBajo' => Producto::stockBajo()->count(),
+            'ticketPromedio' => $numeroVentasMes > 0 ? round($totalMes / $numeroVentasMes, 2) : 0.0,
             'serieMensual' => $this->serieMensual(),
             'masVendidos' => $this->masVendidos(),
+            'porMetodoPago' => $this->porMetodoPago($inicioMes),
+            'rankingVendedores' => $this->rankingVendedores($inicioMes),
             'productosStockBajo' => Producto::with('categoria')->stockBajo()->orderBy('stock')->get(),
         ];
+    }
+
+    /**
+     * Reparto de lo cobrado este mes entre los métodos de pago.
+     */
+    private function porMetodoPago(Carbon $desde): Collection
+    {
+        $totales = Venta::completadas()
+            ->where('created_at', '>=', $desde)
+            ->get(['metodo_pago', 'total'])
+            ->groupBy(fn (Venta $venta) => $venta->metodo_pago->value)
+            ->map(fn (Collection $ventas) => $ventas->sum(fn (Venta $v) => (float) $v->total));
+
+        // Se listan todos los métodos, incluso los que no se usaron, para que
+        // la gráfica no cambie de forma entre un mes y otro.
+        return collect(MetodoPago::cases())->map(fn (MetodoPago $metodo) => [
+            'etiqueta' => $metodo->label(),
+            'total' => round((float) ($totales[$metodo->value] ?? 0), 2),
+        ]);
+    }
+
+    /**
+     * Vendedores ordenados por lo facturado este mes.
+     */
+    private function rankingVendedores(Carbon $desde): Collection
+    {
+        return Venta::completadas()
+            ->with('usuario:id,name')
+            ->where('created_at', '>=', $desde)
+            ->get(['user_id', 'total'])
+            ->groupBy('user_id')
+            ->map(fn (Collection $ventas) => [
+                'nombre' => $ventas->first()->usuario->name,
+                'ventas' => $ventas->count(),
+                'total' => round($ventas->sum(fn (Venta $v) => (float) $v->total), 2),
+            ])
+            ->sortByDesc('total')
+            ->values();
     }
 
     /**

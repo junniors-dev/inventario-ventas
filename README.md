@@ -10,7 +10,7 @@ hecho a mano, ahora aplicando las convenciones y herramientas del framework.
 ![PHP](https://img.shields.io/badge/PHP-8.2+-777BB4?logo=php&logoColor=white)
 ![MySQL](https://img.shields.io/badge/MySQL-8-4479A1?logo=mysql&logoColor=white)
 ![Tests](https://github.com/TU-USUARIO/inventario-ventas/actions/workflows/tests.yml/badge.svg)
-![Tests](https://img.shields.io/badge/tests-160%20passing-success)
+![Tests](https://img.shields.io/badge/tests-173%20passing-success)
 
 ---
 
@@ -38,13 +38,18 @@ hecho a mano, ahora aplicando las convenciones y herramientas del framework.
   historial con su fecha de anulación en lugar de borrarse.
 - Historial filtrable por comprobante, rango de fechas, vendedor, método de pago
   y estado, con el total del conjunto filtrado (no solo de la página visible).
+- Datos de cliente opcionales por venta (nombre y DNI/RUC), buscables desde el
+  historial y visibles en el comprobante.
 - Exportación del historial filtrado a **CSV** listo para abrir en Excel.
-- Descarga del comprobante en **PDF**.
+- Descarga del comprobante en **PDF**, con el IGV desglosado.
 
 ### Reportes
-- Dashboard con ventas del mes y variación frente al mes anterior.
+- Dashboard con ventas del mes, variación frente al mes anterior y ticket
+  promedio.
 - Gráfico de ventas de los últimos 8 meses y ranking de productos más vendidos
   (Chart.js).
+- Reparto de lo cobrado entre efectivo, Yape, Plin y transferencia.
+- Ranking de vendedores del mes.
 - Listado de productos por debajo del stock mínimo.
 
 ### Usuarios y permisos

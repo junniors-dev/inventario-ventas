@@ -93,6 +93,10 @@ class VentaController extends Controller
                 $request->user(),
                 $request->validated('lineas'),
                 MetodoPago::from($request->validated('metodo_pago')),
+                [
+                    'nombre' => $request->validated('cliente_nombre'),
+                    'documento' => $request->validated('cliente_documento'),
+                ],
             );
         } catch (StockInsuficienteException $e) {
             return back()->withInput()->with('error', $e->getMessage());

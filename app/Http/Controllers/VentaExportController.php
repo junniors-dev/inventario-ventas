@@ -13,8 +13,8 @@ class VentaExportController extends Controller
      * Columnas del archivo exportado.
      */
     private const CABECERAS = [
-        'Comprobante', 'Fecha', 'Hora', 'Vendedor',
-        'Metodo de pago', 'Estado', 'Items', 'Total',
+        'Comprobante', 'Fecha', 'Hora', 'Cliente', 'Documento',
+        'Vendedor', 'Metodo de pago', 'Estado', 'Items', 'Total',
     ];
 
     /**
@@ -50,6 +50,8 @@ class VentaExportController extends Controller
                     $venta->codigo,
                     $venta->created_at->format('d/m/Y'),
                     $venta->created_at->format('H:i'),
+                    $venta->cliente_nombre ?? 'Publico general',
+                    $venta->cliente_documento ?? '',
                     $venta->usuario->name,
                     $venta->metodo_pago->label(),
                     $venta->estado->label(),

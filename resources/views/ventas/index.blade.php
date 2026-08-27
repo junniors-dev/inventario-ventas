@@ -19,8 +19,8 @@
             <form method="GET" action="{{ route('ventas.index') }}"
                   class="bg-white dark:bg-gray-800 shadow-sm sm:rounded-lg p-4 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 items-end">
                 <div class="col-span-2 md:col-span-1">
-                    <label for="buscar" class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Comprobante</label>
-                    <input id="buscar" name="buscar" type="search" value="{{ request('buscar') }}" placeholder="VTA-2026-…"
+                    <label for="buscar" class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Comprobante o cliente</label>
+                    <input id="buscar" name="buscar" type="search" value="{{ request('buscar') }}" placeholder="VTA-2026-… o nombre"
                            autocomplete="off"
                            class="w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-emerald-500 focus:ring-emerald-500 rounded-md shadow-sm text-sm">
                 </div>
@@ -110,6 +110,7 @@
                                 <tr>
                                     <th class="px-6 py-3">Comprobante</th>
                                     <th class="px-6 py-3">Fecha</th>
+                                    <th class="px-6 py-3">Cliente</th>
                                     <th class="px-6 py-3">Vendedor</th>
                                     <th class="px-6 py-3">Pago</th>
                                     <th class="px-6 py-3 text-right">Ítems</th>
@@ -130,6 +131,13 @@
                                             @endif
                                         </td>
                                         <td class="px-6 py-4 text-gray-600 dark:text-gray-400">{{ $venta->created_at->format('d/m/Y H:i') }}</td>
+                                        <td class="px-6 py-4">
+                                            @if ($venta->cliente_nombre)
+                                                <span class="text-gray-900 dark:text-gray-100">{{ $venta->cliente_nombre }}</span>
+                                            @else
+                                                <span class="text-gray-400">Público general</span>
+                                            @endif
+                                        </td>
                                         <td class="px-6 py-4 text-gray-900 dark:text-gray-100">{{ $venta->usuario->name }}</td>
                                         <td class="px-6 py-4">
                                             <span class="inline-flex rounded-full bg-gray-100 dark:bg-gray-700 px-2.5 py-1 text-xs font-medium text-gray-700 dark:text-gray-300">

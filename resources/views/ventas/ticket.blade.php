@@ -62,6 +62,14 @@
         <td class="etiqueta">Método de pago</td>
         <td>{{ $venta->metodo_pago->label() }}</td>
     </tr>
+    @if ($venta->cliente_nombre || $venta->cliente_documento)
+        <tr>
+            <td class="etiqueta">Señor(a)</td>
+            <td>{{ $venta->cliente_nombre ?: '—' }}</td>
+            <td class="etiqueta">DNI / RUC</td>
+            <td>{{ $venta->cliente_documento ?: '—' }}</td>
+        </tr>
+    @endif
 </table>
 
 <table class="items">
@@ -85,14 +93,30 @@
     </tbody>
 </table>
 
+@php
+    // Los precios ya incluyen IGV: la base se obtiene dividiendo el total.
+    $tasaIgv = config('negocio.igv');
+    $total = (float) $venta->total;
+    $base = $total / (1 + $tasaIgv);
+    $igv = $total - $base;
+@endphp
+
 <table class="totales">
     <tr>
         <td>Ítems</td>
         <td class="der">{{ $venta->detalles->sum('cantidad') }}</td>
     </tr>
+    <tr>
+        <td>Op. gravada</td>
+        <td class="der">S/ {{ number_format($base, 2) }}</td>
+    </tr>
+    <tr>
+        <td>IGV ({{ number_format($tasaIgv * 100, 0) }}%)</td>
+        <td class="der">S/ {{ number_format($igv, 2) }}</td>
+    </tr>
     <tr class="total">
         <td>TOTAL</td>
-        <td class="der">S/ {{ number_format($venta->total, 2) }}</td>
+        <td class="der">S/ {{ number_format($total, 2) }}</td>
     </tr>
 </table>
 

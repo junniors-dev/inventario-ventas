@@ -28,6 +28,8 @@ class VentaRequest extends FormRequest
     {
         return [
             'metodo_pago' => ['required', Rule::enum(MetodoPago::class)],
+            'cliente_nombre' => ['nullable', 'string', 'max:255'],
+            'cliente_documento' => ['nullable', 'string', 'max:20'],
             'lineas' => ['required', 'array', 'min:1'],
             'lineas.*.producto_id' => ['required', 'integer', Rule::exists('productos', 'id')->whereNull('deleted_at')],
             'lineas.*.cantidad' => ['required', 'integer', 'min:1'],
