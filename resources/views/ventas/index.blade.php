@@ -77,9 +77,15 @@
                             class="rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
                         Filtrar
                     </button>
-                    @if (request()->hasAny(['buscar', 'desde', 'hasta', 'vendedor', 'metodo_pago', 'estado']))
+                    @if (request()->hasAny(\App\Support\FiltrosVenta::CAMPOS))
                         <a href="{{ route('ventas.index') }}" class="text-sm text-gray-500 hover:text-gray-800 dark:hover:text-gray-200">Limpiar filtros</a>
                     @endif
+
+                    <a href="{{ route('ventas.exportar', request()->only(\App\Support\FiltrosVenta::CAMPOS)) }}"
+                       class="inline-flex items-center gap-2 rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v12m0 0-4-4m4 4 4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+                        Exportar CSV
+                    </a>
 
                     <p class="ml-auto text-sm text-gray-600 dark:text-gray-400 tabular-nums">
                         <span class="font-semibold text-gray-900 dark:text-gray-100">{{ number_format($resumen['ventas']).' '.Str::plural('venta', $resumen['ventas']) }}</span>
@@ -91,7 +97,7 @@
             <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                 @if ($ventas->isEmpty())
                     <div class="p-10 text-center text-gray-500 dark:text-gray-400">
-                        @if (request()->hasAny(['buscar', 'desde', 'hasta', 'vendedor', 'metodo_pago', 'estado']))
+                        @if (request()->hasAny(\App\Support\FiltrosVenta::CAMPOS))
                             Ninguna venta coincide con los filtros aplicados.
                         @else
                             Todavía no hay ventas registradas.

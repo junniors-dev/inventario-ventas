@@ -10,7 +10,7 @@ hecho a mano, ahora aplicando las convenciones y herramientas del framework.
 ![PHP](https://img.shields.io/badge/PHP-8.2+-777BB4?logo=php&logoColor=white)
 ![MySQL](https://img.shields.io/badge/MySQL-8-4479A1?logo=mysql&logoColor=white)
 ![Tests](https://github.com/TU-USUARIO/inventario-ventas/actions/workflows/tests.yml/badge.svg)
-![Tests](https://img.shields.io/badge/tests-120%20passing-success)
+![Tests](https://img.shields.io/badge/tests-160%20passing-success)
 
 ---
 
@@ -38,6 +38,7 @@ hecho a mano, ahora aplicando las convenciones y herramientas del framework.
   historial con su fecha de anulación en lugar de borrarse.
 - Historial filtrable por comprobante, rango de fechas, vendedor, método de pago
   y estado, con el total del conjunto filtrado (no solo de la página visible).
+- Exportación del historial filtrado a **CSV** listo para abrir en Excel.
 - Descarga del comprobante en **PDF**.
 
 ### Reportes
@@ -93,6 +94,15 @@ producto no altera las ventas ya registradas.
 **Autorización en dos niveles.** El middleware `role` protege secciones enteras
 por rol; las policies deciden sobre registros concretos (por ejemplo, si *esta*
 venta puede anularse y quién puede verla).
+
+**El registro público está deshabilitado.** En un sistema de inventario no tiene
+sentido que cualquiera se dé de alta y vea el stock del negocio: las cuentas las
+crea un administrador desde el panel de usuarios.
+
+**El precio de una venta nunca llega del cliente.** El punto de venta envía
+únicamente identificadores y cantidades; el importe se recalcula en el servidor
+con el precio vigente en la base de datos, de modo que manipular el formulario no
+altera el total.
 
 **Enums nativos de PHP** para roles, métodos de pago y estados de venta, casteados
 directamente en los modelos.
@@ -212,10 +222,25 @@ arranque:
 php artisan test
 ```
 
-La suite cubre 112 casos: control de acceso por rol, CRUD con sus validaciones,
+La suite cubre 160 casos: control de acceso por rol, CRUD con sus validaciones,
 descuento y reintegro de stock, correlativos de venta bajo colisión, códigos de
-barras, gestión de usuarios, cálculo de métricas y generación del PDF. Corre sobre SQLite en memoria, así que
-no toca la base de datos de desarrollo.
+barras, gestión de usuarios, cálculo de métricas, exportación y generación del
+PDF. Corre sobre SQLite en memoria, así que no toca la base de datos de
+desarrollo.
+
+Incluye una batería de 32 pruebas de seguridad dedicada:
+
+| Vector | Qué se comprueba |
+| --- | --- |
+| Acceso sin sesión | Ninguna ruta interna responde a un invitado |
+| Escalada de privilegios | Un vendedor no alcanza la administración ni se asciende desde su perfil |
+| Referencias directas a objetos | Un vendedor no lee ni descarga el ticket de la venta de otro |
+| Asignación masiva | Los campos no validados (`id`, `deleted_at`) se descartan |
+| Manipulación del formulario | El precio y la cantidad enviados por el cliente no alteran el total |
+| Inyección SQL | Los filtros con carga maliciosa no afectan al esquema |
+| Cross-site scripting | El nombre de un producto se escapa al renderizarse |
+| Credenciales | La contraseña se almacena con hash y no se serializa |
+| Fuerza bruta | El login se bloquea tras cinco intentos fallidos |
 
 Para ejecutar un archivo concreto:
 

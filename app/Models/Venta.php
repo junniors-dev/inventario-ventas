@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Carbon;
 
 class Venta extends Model
 {
@@ -59,5 +60,25 @@ class Venta extends Model
     protected function completadas(Builder $query): Builder
     {
         return $query->where('estado', EstadoVenta::Completada);
+    }
+
+    /**
+     * Aplica los filtros del historial de ventas.
+     *
+     * Vive en el modelo para que el listado y la exportación compartan
+     * exactamente los mismos criterios y no puedan divergir.
+     *
+     * @param  array{buscar?: ?string, desde?: ?Carbon, hasta?: ?Carbon, vendedor?: ?int, metodo_pago?: ?MetodoPago, estado?: ?EstadoVenta}  $filtros
+     */
+    #[Scope]
+    protected function filtradas(Builder $query, array $filtros): Builder
+    {
+        return $query
+            ->when($filtros['buscar'] ?? null, fn (Builder $query, string $codigo) => $query->where('codigo', 'like', "%{$codigo}%"))
+            ->when($filtros['desde'] ?? null, fn (Builder $query, Carbon $desde) => $query->where('created_at', '>=', $desde->startOfDay()))
+            ->when($filtros['hasta'] ?? null, fn (Builder $query, Carbon $hasta) => $query->where('created_at', '<=', $hasta->endOfDay()))
+            ->when($filtros['vendedor'] ?? null, fn (Builder $query, int $id) => $query->where('user_id', $id))
+            ->when($filtros['metodo_pago'] ?? null, fn (Builder $query, MetodoPago $metodo) => $query->where('metodo_pago', $metodo))
+            ->when($filtros['estado'] ?? null, fn (Builder $query, EstadoVenta $estado) => $query->where('estado', $estado));
     }
 }

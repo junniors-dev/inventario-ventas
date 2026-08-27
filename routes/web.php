@@ -8,6 +8,7 @@ use App\Http\Controllers\TicketVentaController;
 use App\Http\Controllers\UsuarioController;
 use App\Http\Controllers\VentaAnuladaController;
 use App\Http\Controllers\VentaController;
+use App\Http\Controllers\VentaExportController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -32,6 +33,10 @@ Route::middleware('auth')->group(function () {
  | Ventas: disponibles para admin y vendedor.
  */
 Route::middleware('auth')->group(function () {
+    // Antes del resource: si no, /ventas/exportar se resolvería como {venta}.
+    Route::get('/ventas/exportar', [VentaExportController::class, 'show'])
+        ->name('ventas.exportar');
+
     Route::resource('ventas', VentaController::class)->only(['index', 'create', 'store', 'show']);
 
     // La anulación se modela como su propio recurso; la policy decide quién puede.

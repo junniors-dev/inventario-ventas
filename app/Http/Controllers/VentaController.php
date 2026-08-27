@@ -11,6 +11,7 @@ use App\Models\Categoria;
 use App\Models\Producto;
 use App\Models\User;
 use App\Models\Venta;
+use App\Support\FiltrosVenta;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -25,12 +26,7 @@ class VentaController extends Controller
             ->withCount('detalles')
             // El vendedor solo ve sus propias ventas; el admin las ve todas.
             ->unless($request->user()->isAdmin(), fn ($query) => $query->whereBelongsTo($request->user(), 'usuario'))
-            ->when($request->string('buscar')->trim()->value(), fn ($query, string $codigo) => $query->where('codigo', 'like', "%{$codigo}%"))
-            ->when($request->date('desde'), fn ($query, $desde) => $query->where('created_at', '>=', $desde->startOfDay()))
-            ->when($request->date('hasta'), fn ($query, $hasta) => $query->where('created_at', '<=', $hasta->endOfDay()))
-            ->when($request->integer('vendedor'), fn ($query, int $id) => $query->where('user_id', $id))
-            ->when($request->enum('metodo_pago', MetodoPago::class), fn ($query, MetodoPago $metodo) => $query->where('metodo_pago', $metodo))
-            ->when($request->enum('estado', EstadoVenta::class), fn ($query, EstadoVenta $estado) => $query->where('estado', $estado));
+            ->filtradas(FiltrosVenta::desdePeticion($request));
 
         // Totales del conjunto filtrado, no solo de la página visible.
         $resumen = [
