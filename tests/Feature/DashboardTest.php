@@ -1,5 +1,6 @@
 <?php
 
+use App\Actions\AnularVenta;
 use App\Actions\ObtenerMetricasDashboard;
 use App\Actions\RegistrarVenta;
 use App\Enums\MetodoPago;
@@ -70,7 +71,7 @@ test('las ventas anuladas no cuentan en las métricas', function () {
 
     expect((new ObtenerMetricasDashboard)->handle()['ventasMes'])->toBe(12.0);
 
-    (new App\Actions\AnularVenta)->handle($venta);
+    (new AnularVenta)->handle($venta);
 
     expect((new ObtenerMetricasDashboard)->handle()['ventasMes'])->toBe(0.0);
 });

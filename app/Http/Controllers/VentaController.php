@@ -3,11 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Actions\RegistrarVenta;
+use App\Enums\EstadoVenta;
 use App\Enums\MetodoPago;
 use App\Exceptions\StockInsuficienteException;
 use App\Http\Requests\VentaRequest;
 use App\Models\Categoria;
 use App\Models\Producto;
+use App\Models\User;
 use App\Models\Venta;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -18,16 +20,40 @@ class VentaController extends Controller
 {
     public function index(Request $request): View
     {
-        $ventas = Venta::query()
+        $consulta = Venta::query()
             ->with('usuario')
             ->withCount('detalles')
             // El vendedor solo ve sus propias ventas; el admin las ve todas.
             ->unless($request->user()->isAdmin(), fn ($query) => $query->whereBelongsTo($request->user(), 'usuario'))
+            ->when($request->string('buscar')->trim()->value(), fn ($query, string $codigo) => $query->where('codigo', 'like', "%{$codigo}%"))
+            ->when($request->date('desde'), fn ($query, $desde) => $query->where('created_at', '>=', $desde->startOfDay()))
+            ->when($request->date('hasta'), fn ($query, $hasta) => $query->where('created_at', '<=', $hasta->endOfDay()))
+            ->when($request->integer('vendedor'), fn ($query, int $id) => $query->where('user_id', $id))
+            ->when($request->enum('metodo_pago', MetodoPago::class), fn ($query, MetodoPago $metodo) => $query->where('metodo_pago', $metodo))
+            ->when($request->enum('estado', EstadoVenta::class), fn ($query, EstadoVenta $estado) => $query->where('estado', $estado));
+
+        // Totales del conjunto filtrado, no solo de la página visible.
+        $resumen = [
+            'ventas' => (clone $consulta)->completadas()->count(),
+            'total' => (float) (clone $consulta)->completadas()->sum('total'),
+        ];
+
+        $ventas = $consulta
             ->orderByDesc('created_at')
             ->orderByDesc('id')
-            ->paginate(15);
+            ->paginate(15)
+            ->withQueryString();
 
-        return view('ventas.index', compact('ventas'));
+        return view('ventas.index', [
+            'ventas' => $ventas,
+            'resumen' => $resumen,
+            'metodosPago' => MetodoPago::cases(),
+            'estados' => EstadoVenta::cases(),
+            // Solo el admin puede filtrar por vendedor: los demás ya ven únicamente lo suyo.
+            'vendedores' => $request->user()->isAdmin()
+                ? User::orderBy('name')->get(['id', 'name'])
+                : collect(),
+        ]);
     }
 
     /**
@@ -42,14 +68,17 @@ class VentaController extends Controller
 
     public function create(): View
     {
+        // Se incluyen los productos agotados: al escanear uno, el cajero debe
+        // leer «sin stock» y no «código desconocido». En la grilla aparecen
+        // deshabilitados y ordenados después de los disponibles.
         $productos = Producto::query()
             ->with('categoria')
-            ->where('stock', '>', 0)
+            ->orderByRaw('stock = 0')
             ->orderBy('nombre')
             ->limit(self::MAX_PRODUCTOS_POS)
             ->get();
 
-        $catalogoTruncado = Producto::where('stock', '>', 0)->count() > self::MAX_PRODUCTOS_POS;
+        $catalogoTruncado = Producto::count() > self::MAX_PRODUCTOS_POS;
 
         $categorias = Categoria::orderBy('nombre')->get();
 

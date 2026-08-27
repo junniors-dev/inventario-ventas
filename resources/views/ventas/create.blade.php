@@ -77,8 +77,8 @@
                                     <span class="shrink-0 text-sm font-semibold tabular-nums text-gray-900 dark:text-gray-100"
                                           x-text="'S/ ' + p.precio.toFixed(2)"></span>
                                     <span class="shrink-0 text-xs tabular-nums"
-                                          :class="disponible(p.id, p.stock) > 0 ? 'text-gray-400' : 'text-red-500'"
-                                          x-text="disponible(p.id, p.stock) + ' disp.'"></span>
+                                          :class="disponible(p.id, p.stock) > 0 ? 'text-gray-400' : 'font-semibold text-red-500'"
+                                          x-text="p.stock === 0 ? 'Agotado' : disponible(p.id, p.stock) + ' disp.'"></span>
                                 </li>
                             </template>
                         </ul>
@@ -119,7 +119,9 @@
                                 <span class="text-sm font-semibold leading-tight text-gray-900 dark:text-gray-100" x-text="p.nombre"></span>
                                 <span class="mt-1.5 flex items-center justify-between">
                                     <span class="tabular-nums font-semibold text-gray-900 dark:text-gray-100" x-text="'S/ ' + p.precio.toFixed(2)"></span>
-                                    <span class="text-xs tabular-nums text-gray-500 dark:text-gray-400" x-text="disponible(p.id, p.stock) + ' disp.'"></span>
+                                    <span class="text-xs tabular-nums"
+                                          :class="p.stock === 0 ? 'font-semibold text-red-500' : 'text-gray-500 dark:text-gray-400'"
+                                          x-text="p.stock === 0 ? 'Agotado' : disponible(p.id, p.stock) + ' disp.'"></span>
                                 </span>
                             </button>
                         </template>
@@ -253,7 +255,12 @@
                         if (!p) return false;
 
                         if (this.disponible(p.id, p.stock) <= 0) {
-                            this.mostrarAviso(`Sin stock disponible de ${p.nombre}`, 'error');
+                            this.mostrarAviso(
+                                p.stock === 0
+                                    ? `${p.nombre} está agotado`
+                                    : `Ya tienes las ${p.stock} unidades disponibles de ${p.nombre}`,
+                                'error',
+                            );
                             return false;
                         }
 

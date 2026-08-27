@@ -9,7 +9,8 @@ hecho a mano, ahora aplicando las convenciones y herramientas del framework.
 ![Laravel](https://img.shields.io/badge/Laravel-12-FF2D20?logo=laravel&logoColor=white)
 ![PHP](https://img.shields.io/badge/PHP-8.2+-777BB4?logo=php&logoColor=white)
 ![MySQL](https://img.shields.io/badge/MySQL-8-4479A1?logo=mysql&logoColor=white)
-![Tests](https://img.shields.io/badge/tests-112%20passing-success)
+![Tests](https://github.com/TU-USUARIO/inventario-ventas/actions/workflows/tests.yml/badge.svg)
+![Tests](https://img.shields.io/badge/tests-120%20passing-success)
 
 ---
 
@@ -35,6 +36,8 @@ hecho a mano, ahora aplicando las convenciones y herramientas del framework.
 - Correlativo legible por comprobante (`VTA-2026-000147`).
 - **Anulación de ventas** que reintegra el stock; la venta se conserva en el
   historial con su fecha de anulación en lugar de borrarse.
+- Historial filtrable por comprobante, rango de fechas, vendedor, método de pago
+  y estado, con el total del conjunto filtrado (no solo de la página visible).
 - Descarga del comprobante en **PDF**.
 
 ### Reportes
@@ -219,6 +222,15 @@ Para ejecutar un archivo concreto:
 ```bash
 php artisan test --filter=VentaTest
 ```
+
+El estilo del código se verifica con Laravel Pint:
+
+```bash
+./vendor/bin/pint --test
+```
+
+Cada push a `main` y cada pull request ejecutan en GitHub Actions la
+comprobación de estilo, la compilación de assets y la suite completa.
 
 ---
 

@@ -12,7 +12,7 @@ class EnsureUserHasRole
      * Permite el paso solo si el usuario autenticado tiene uno
      * de los roles indicados. Uso en rutas: ->middleware('role:admin').
      *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
+     * @param  Closure(Request): (Response)  $next
      */
     public function handle(Request $request, Closure $next, string ...$roles): Response
     {

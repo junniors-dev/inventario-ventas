@@ -3,6 +3,8 @@
 use App\Models\Categoria;
 use App\Models\Producto;
 use App\Models\User;
+use Database\Seeders\CategoriaSeeder;
+use Database\Seeders\ProductoSeeder;
 
 beforeEach(function () {
     $this->admin = User::factory()->admin()->create();
@@ -88,9 +90,21 @@ test('la pantalla de venta expone el código de barras para el lector', function
         ->assertSee('Escanea un código');
 });
 
+test('un producto agotado sigue llegando al punto de venta', function () {
+    // Si no viajara al navegador, escanearlo diría «código desconocido»
+    // en lugar de «agotado», que es lo que el cajero necesita saber.
+    Producto::create(producto(['nombre' => 'Sin existencias', 'stock' => 0]));
+
+    $this->actingAs($this->admin)
+        ->get(route('ventas.create'))
+        ->assertOk()
+        ->assertSee('Sin existencias')
+        ->assertSee('7751234567890');
+});
+
 test('el seeder genera códigos EAN-13 válidos', function () {
-    $this->seed(Database\Seeders\CategoriaSeeder::class);
-    $this->seed(Database\Seeders\ProductoSeeder::class);
+    $this->seed(CategoriaSeeder::class);
+    $this->seed(ProductoSeeder::class);
 
     $conCodigo = Producto::whereNotNull('codigo_barras')->get();
 

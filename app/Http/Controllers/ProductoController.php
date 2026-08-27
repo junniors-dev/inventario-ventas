@@ -5,8 +5,8 @@ namespace App\Http\Controllers;
 use App\Http\Requests\ProductoRequest;
 use App\Models\Categoria;
 use App\Models\Producto;
-use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class ProductoController extends Controller

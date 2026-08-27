@@ -6,6 +6,7 @@ use App\Models\Categoria;
 use App\Models\Producto;
 use App\Models\User;
 use App\Models\Venta;
+use Illuminate\Database\UniqueConstraintViolationException;
 
 beforeEach(function () {
     $this->vendedor = User::factory()->create();
@@ -30,7 +31,7 @@ test('la columna codigo tiene restricción única en la base de datos', function
         'user_id' => $this->vendedor->id,
         'total' => 10,
         'metodo_pago' => MetodoPago::Efectivo,
-    ]))->toThrow(Illuminate\Database\UniqueConstraintViolationException::class);
+    ]))->toThrow(UniqueConstraintViolationException::class);
 });
 
 test('la venta se reintenta cuando el correlativo ya fue tomado', function () {
