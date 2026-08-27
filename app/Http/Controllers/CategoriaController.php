@@ -46,7 +46,9 @@ class CategoriaController extends Controller
 
     public function destroy(Categoria $categoria): RedirectResponse
     {
-        if ($categoria->productos()->exists()) {
+        // withTrashed(): un producto eliminado lógicamente sigue ocupando la
+        // clave foránea, así que la base de datos rechazaría el borrado.
+        if ($categoria->productos()->withTrashed()->exists()) {
             return redirect()->route('categorias.index')
                 ->with('error', 'No se puede eliminar una categoría que tiene productos asociados.');
         }

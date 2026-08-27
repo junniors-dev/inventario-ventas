@@ -83,6 +83,26 @@ test('no elimina una categoría que tiene productos', function () {
     $this->assertDatabaseHas('categorias', ['id' => $categoria->id]);
 });
 
+test('no elimina una categoría cuyos productos fueron borrados lógicamente', function () {
+    $categoria = Categoria::create(['nombre' => 'Descontinuados']);
+    $producto = Producto::create([
+        'categoria_id' => $categoria->id,
+        'nombre' => 'Producto retirado',
+        'precio' => 2.50,
+        'stock' => 0,
+        'stock_minimo' => 0,
+    ]);
+    $producto->delete();
+
+    // La fila del producto sigue existiendo y ocupa la clave foránea, así que
+    // borrar la categoría debe rechazarse con un mensaje, no con un error 500.
+    $this->actingAs(admin())
+        ->delete(route('categorias.destroy', $categoria))
+        ->assertSessionHas('error');
+
+    $this->assertDatabaseHas('categorias', ['id' => $categoria->id]);
+});
+
 test('el admin puede eliminar una categoría vacía', function () {
     $categoria = Categoria::create(['nombre' => 'Temporal']);
 

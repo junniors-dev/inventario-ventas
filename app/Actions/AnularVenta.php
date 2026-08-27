@@ -6,6 +6,7 @@ use App\Enums\EstadoVenta;
 use App\Models\Producto;
 use App\Models\Venta;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class AnularVenta
 {
@@ -43,6 +44,14 @@ class AnularVenta
             $venta->update([
                 'estado' => EstadoVenta::Anulada,
                 'anulada_at' => now(),
+            ]);
+
+            Log::warning('Venta anulada', [
+                'venta_id' => $venta->id,
+                'codigo' => $venta->codigo,
+                'total' => $venta->total,
+                'anulada_por' => auth()->id(),
+                'stock_reintegrado' => $venta->detalles->pluck('cantidad', 'producto_id')->all(),
             ]);
 
             return $venta;

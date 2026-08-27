@@ -31,8 +31,18 @@
 <body>
 
 <div class="cabecera">
-    <div class="negocio">Bodega Central</div>
-    <div class="sub">Sistema de Inventario y Ventas</div>
+    <div class="negocio">{{ config('negocio.nombre') }}</div>
+    <div class="sub">
+        @if (config('negocio.ruc'))
+            RUC {{ config('negocio.ruc') }}
+        @endif
+        @if (config('negocio.direccion'))
+            · {{ config('negocio.direccion') }}
+        @endif
+        @if (config('negocio.telefono'))
+            · Tel. {{ config('negocio.telefono') }}
+        @endif
+    </div>
     <div class="comprobante">
         <div class="codigo">{{ $venta->codigo }}</div>
         <div class="fecha">{{ $venta->created_at->format('d/m/Y H:i') }}</div>

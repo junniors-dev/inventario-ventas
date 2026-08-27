@@ -30,13 +30,26 @@ class VentaController extends Controller
         return view('ventas.index', compact('ventas'));
     }
 
+    /**
+     * Productos que se envían a la pantalla de venta.
+     *
+     * El buscador del punto de venta filtra en el navegador, así que el
+     * catálogo viaja completo. Se acota para que un inventario grande no
+     * infle la respuesta; si se supera el límite, la vista avisa de que
+     * conviene usar el buscador.
+     */
+    private const MAX_PRODUCTOS_POS = 250;
+
     public function create(): View
     {
         $productos = Producto::query()
             ->with('categoria')
             ->where('stock', '>', 0)
             ->orderBy('nombre')
+            ->limit(self::MAX_PRODUCTOS_POS)
             ->get();
+
+        $catalogoTruncado = Producto::where('stock', '>', 0)->count() > self::MAX_PRODUCTOS_POS;
 
         $categorias = Categoria::orderBy('nombre')->get();
 
@@ -44,6 +57,7 @@ class VentaController extends Controller
             'productos' => $productos,
             'categorias' => $categorias,
             'metodosPago' => MetodoPago::cases(),
+            'catalogoTruncado' => $catalogoTruncado,
         ]);
     }
 

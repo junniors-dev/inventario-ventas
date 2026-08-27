@@ -37,9 +37,10 @@
                                 @foreach ($ventas as $venta)
                                     <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/40">
                                         <td class="px-6 py-4">
-                                            <span class="font-semibold tabular-nums {{ $venta->estado === \App\Enums\EstadoVenta::Anulada ? 'text-gray-400 line-through' : 'text-emerald-700 dark:text-emerald-400' }}">
+                                            <a href="{{ route('ventas.show', $venta) }}"
+                                               class="font-semibold tabular-nums hover:underline {{ $venta->estado === \App\Enums\EstadoVenta::Anulada ? 'text-gray-400 line-through' : 'text-emerald-700 dark:text-emerald-400' }}">
                                                 {{ $venta->codigo }}
-                                            </span>
+                                            </a>
                                             @if ($venta->estado === \App\Enums\EstadoVenta::Anulada)
                                                 <span class="ml-2 inline-flex rounded-full bg-red-50 dark:bg-red-950 px-2 py-0.5 text-[10px] font-bold uppercase text-red-700 dark:text-red-400">Anulada</span>
                                             @endif

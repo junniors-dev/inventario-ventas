@@ -6,6 +6,8 @@ use App\Enums\Role;
 use App\Http\Requests\UsuarioRequest;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\View\View;
 
 class UsuarioController extends Controller
@@ -13,7 +15,9 @@ class UsuarioController extends Controller
     public function index(): View
     {
         $usuarios = User::query()
-            ->withCount('ventas')
+            // Solo las ventas vigentes: contar las anuladas daría una cifra
+            // engañosa junto al nombre del vendedor.
+            ->withCount(['ventas as ventas_count' => fn ($query) => $query->completadas()])
             ->orderBy('name')
             ->paginate(15);
 
@@ -60,15 +64,26 @@ class UsuarioController extends Controller
             $datos['password'] = $request->validated('password');
         }
 
+        $rolAnterior = $usuario->role;
+
         $usuario->update($datos);
+
+        if ($usuario->role !== $rolAnterior) {
+            Log::warning('Rol de usuario modificado', [
+                'usuario_id' => $usuario->id,
+                'de' => $rolAnterior->value,
+                'a' => $usuario->role->value,
+                'modificado_por' => $request->user()->id,
+            ]);
+        }
 
         return redirect()->route('usuarios.index')
             ->with('success', 'Usuario actualizado correctamente.');
     }
 
-    public function destroy(User $usuario): RedirectResponse
+    public function destroy(Request $request, User $usuario): RedirectResponse
     {
-        if ($usuario->is(request()->user())) {
+        if ($usuario->is($request->user())) {
             return redirect()->route('usuarios.index')
                 ->with('error', 'No puedes eliminar tu propia cuenta.');
         }

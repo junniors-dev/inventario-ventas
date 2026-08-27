@@ -27,6 +27,12 @@
                                class="w-full border-0 bg-transparent p-0 text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:ring-0">
                     </div>
 
+                    @if ($catalogoTruncado)
+                        <div class="mb-4 rounded-lg bg-amber-50 dark:bg-amber-950/40 px-4 py-2.5 text-sm text-amber-800 dark:text-amber-300">
+                            Se muestran los primeros {{ $productos->count() }} productos con stock. Usa el buscador para encontrar el resto.
+                        </div>
+                    @endif
+
                     <div class="flex flex-wrap gap-2 mb-4">
                         <button type="button" @click="categoria = ''"
                                 :class="categoria === '' ? 'bg-emerald-50 text-emerald-700 border-transparent dark:bg-emerald-950 dark:text-emerald-400' : 'bg-white text-gray-600 border-gray-300 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-700'"

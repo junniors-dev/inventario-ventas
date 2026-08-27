@@ -8,10 +8,17 @@ use App\Exceptions\StockInsuficienteException;
 use App\Models\Producto;
 use App\Models\User;
 use App\Models\Venta;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class RegistrarVenta
 {
+    /**
+     * Reintentos ante colisión del correlativo de venta.
+     */
+    private const MAX_INTENTOS = 3;
+
     /**
      * Registra una venta descontando el stock de forma atómica.
      *
@@ -26,6 +33,30 @@ class RegistrarVenta
      * @throws StockInsuficienteException
      */
     public function handle(User $usuario, array $lineas, MetodoPago $metodoPago): Venta
+    {
+        // El correlativo se deriva del último código existente, así que dos
+        // ventas simultáneas pueden calcular el mismo número. El índice UNIQUE
+        // de `codigo` lo impide a nivel de base de datos: si eso ocurre se
+        // reintenta la transacción completa, que vuelve a leer el correlativo.
+        $intentos = 0;
+
+        while (true) {
+            try {
+                return $this->registrar($usuario, $lineas, $metodoPago);
+            } catch (UniqueConstraintViolationException $e) {
+                if (++$intentos >= self::MAX_INTENTOS) {
+                    throw $e;
+                }
+            }
+        }
+    }
+
+    /**
+     * @param  array<int, array{producto_id: int, cantidad: int}>  $lineas
+     *
+     * @throws StockInsuficienteException
+     */
+    private function registrar(User $usuario, array $lineas, MetodoPago $metodoPago): Venta
     {
         return DB::transaction(function () use ($usuario, $lineas, $metodoPago): Venta {
             // Agrupar por producto: si la misma referencia llega dos veces,
@@ -77,6 +108,15 @@ class RegistrarVenta
             }
 
             $venta->update(['total' => $total]);
+
+            Log::info('Venta registrada', [
+                'venta_id' => $venta->id,
+                'codigo' => $venta->codigo,
+                'user_id' => $usuario->id,
+                'total' => $venta->total,
+                'metodo_pago' => $metodoPago->value,
+                'lineas' => count($cantidades),
+            ]);
 
             return $venta;
         });
