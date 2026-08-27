@@ -30,6 +30,9 @@
                         <x-nav-link :href="route('categorias.index')" :active="request()->routeIs('categorias.*')">
                             Categorías
                         </x-nav-link>
+                        <x-nav-link :href="route('usuarios.index')" :active="request()->routeIs('usuarios.*')">
+                            Usuarios
+                        </x-nav-link>
                     @endif
                 </div>
             </div>
@@ -100,6 +103,9 @@
                 </x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('categorias.index')" :active="request()->routeIs('categorias.*')">
                     Categorías
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('usuarios.index')" :active="request()->routeIs('usuarios.*')">
+                    Usuarios
                 </x-responsive-nav-link>
             @endif
         </div>

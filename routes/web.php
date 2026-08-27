@@ -5,13 +5,18 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProductoController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\TicketVentaController;
+use App\Http\Controllers\UsuarioController;
 use App\Http\Controllers\VentaAnuladaController;
 use App\Http\Controllers\VentaController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    return view('welcome');
-});
+    if (! auth()->check()) {
+        return redirect()->route('login');
+    }
+
+    return redirect()->route(auth()->user()->isAdmin() ? 'dashboard' : 'ventas.create');
+})->name('home');
 
 Route::get('/dashboard', DashboardController::class)
     ->middleware(['auth', 'role:admin'])
@@ -43,6 +48,7 @@ Route::middleware('auth')->group(function () {
 Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::resource('categorias', CategoriaController::class)->except(['show']);
     Route::resource('productos', ProductoController::class)->except(['show']);
+    Route::resource('usuarios', UsuarioController::class)->except(['show']);
 });
 
 require __DIR__.'/auth.php';

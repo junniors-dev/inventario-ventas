@@ -9,7 +9,7 @@ hecho a mano, ahora aplicando las convenciones y herramientas del framework.
 ![Laravel](https://img.shields.io/badge/Laravel-12-FF2D20?logo=laravel&logoColor=white)
 ![PHP](https://img.shields.io/badge/PHP-8.2+-777BB4?logo=php&logoColor=white)
 ![MySQL](https://img.shields.io/badge/MySQL-8-4479A1?logo=mysql&logoColor=white)
-![Tests](https://img.shields.io/badge/tests-82%20passing-success)
+![Tests](https://img.shields.io/badge/tests-94%20passing-success)
 
 ---
 
@@ -39,9 +39,14 @@ hecho a mano, ahora aplicando las convenciones y herramientas del framework.
 
 ### Usuarios y permisos
 
+Gestión de cuentas desde el panel: crear usuarios, asignar rol y cambiar
+contraseñas. El sistema impide que un administrador se elimine a sí mismo o se
+quite su propio rol, y bloquea el borrado de usuarios que ya tienen ventas
+registradas para no romper el historial.
+
 | Rol | Puede |
 | --- | --- |
-| **Administrador** | Todo: dashboard, productos, categorías, ver y anular cualquier venta |
+| **Administrador** | Todo: dashboard, productos, categorías, usuarios, ver y anular cualquier venta |
 | **Vendedor** | Registrar ventas y consultar únicamente las suyas |
 
 ---
@@ -192,10 +197,10 @@ arranque:
 php artisan test
 ```
 
-La suite cubre 82 casos: control de acceso por rol, CRUD con sus validaciones,
-descuento y reintegro de stock, correlativos de venta, cálculo de métricas y
-generación del PDF. Corre sobre SQLite en memoria, así que no toca la base de
-datos de desarrollo.
+La suite cubre 94 casos: control de acceso por rol, CRUD con sus validaciones,
+descuento y reintegro de stock, correlativos de venta, gestión de usuarios,
+cálculo de métricas y generación del PDF. Corre sobre SQLite en memoria, así que
+no toca la base de datos de desarrollo.
 
 Para ejecutar un archivo concreto:
 
@@ -226,6 +231,7 @@ resources/views/
 ├── components/           kpi-card, stock-badge, flash
 ├── categorias/
 ├── productos/
+├── usuarios/
 └── ventas/               incluye la vista del ticket PDF
 tests/Feature/
 ```
