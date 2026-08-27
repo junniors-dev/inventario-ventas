@@ -32,6 +32,14 @@ class ProductoRequest extends FormRequest
                     ->ignore($this->route('producto'))
                     ->whereNull('deleted_at'),
             ],
+            'codigo_barras' => [
+                'nullable',
+                'string',
+                'max:32',
+                // El índice único de la columna alcanza también a los productos
+                // borrados lógicamente, así que la regla no los excluye.
+                Rule::unique('productos', 'codigo_barras')->ignore($this->route('producto')),
+            ],
             'precio' => ['required', 'numeric', 'gt:0', 'max:99999999.99'],
             'stock' => ['required', 'integer', 'min:0'],
             'stock_minimo' => ['required', 'integer', 'min:0'],
@@ -50,6 +58,7 @@ class ProductoRequest extends FormRequest
             'categoria_id.exists' => 'La categoría seleccionada no existe.',
             'nombre.required' => 'El nombre del producto es obligatorio.',
             'nombre.unique' => 'Ya existe un producto con ese nombre.',
+            'codigo_barras.unique' => 'Ese código de barras ya está asignado a otro producto.',
             'precio.required' => 'El precio es obligatorio.',
             'precio.gt' => 'El precio debe ser mayor que cero.',
             'stock.min' => 'El stock no puede ser negativo.',

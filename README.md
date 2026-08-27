@@ -9,7 +9,7 @@ hecho a mano, ahora aplicando las convenciones y herramientas del framework.
 ![Laravel](https://img.shields.io/badge/Laravel-12-FF2D20?logo=laravel&logoColor=white)
 ![PHP](https://img.shields.io/badge/PHP-8.2+-777BB4?logo=php&logoColor=white)
 ![MySQL](https://img.shields.io/badge/MySQL-8-4479A1?logo=mysql&logoColor=white)
-![Tests](https://img.shields.io/badge/tests-94%20passing-success)
+![Tests](https://img.shields.io/badge/tests-112%20passing-success)
 
 ---
 
@@ -17,7 +17,9 @@ hecho a mano, ahora aplicando las convenciones y herramientas del framework.
 
 ### Inventario
 - CRUD de productos y categorías con validación en Form Requests.
-- Búsqueda por nombre, filtro por categoría y filtro de stock bajo.
+- Búsqueda por nombre o código de barras, filtro por categoría y filtro de
+  stock bajo.
+- Código de barras opcional por producto, único e indexado.
 - **Borrado lógico** (soft deletes): eliminar un producto lo oculta del catálogo
   pero conserva intacto el historial de ventas que lo referencia.
 - Alertas visuales cuando el stock cae por debajo del mínimo configurado.
@@ -25,6 +27,10 @@ hecho a mano, ahora aplicando las convenciones y herramientas del framework.
 ### Ventas
 - Pantalla de venta tipo POS: buscador, filtros por categoría, carrito con
   cantidades y total calculado en vivo.
+- **Lector de código de barras**: el buscador reconoce el disparo del lector
+  (que se comporta como un teclado rápido seguido de Enter) y añade el producto
+  al carrito al instante. Sin lector, el mismo campo funciona como
+  autocompletado con navegación por teclado.
 - Métodos de pago: efectivo, Yape, Plin y transferencia.
 - Correlativo legible por comprobante (`VTA-2026-000147`).
 - **Anulación de ventas** que reintegra el stock; la venta se conserva en el
@@ -87,6 +93,12 @@ venta puede anularse y quién puede verla).
 
 **Enums nativos de PHP** para roles, métodos de pago y estados de venta, casteados
 directamente en los modelos.
+
+**El lector de códigos no necesita drivers.** Un lector USB actúa como teclado:
+teclea los dígitos en milisegundos y envía Enter. El punto de venta mide el
+intervalo entre pulsaciones para distinguir un escaneo de la escritura humana, y
+al recibir Enter busca primero una coincidencia exacta de código antes de caer en
+la sugerencia resaltada del autocompletado.
 
 **Detección de N+1 en desarrollo.** `Model::preventLazyLoading()` está activo
 fuera de producción, de modo que una relación sin eager loading lanza una
@@ -197,9 +209,9 @@ arranque:
 php artisan test
 ```
 
-La suite cubre 94 casos: control de acceso por rol, CRUD con sus validaciones,
-descuento y reintegro de stock, correlativos de venta, gestión de usuarios,
-cálculo de métricas y generación del PDF. Corre sobre SQLite en memoria, así que
+La suite cubre 112 casos: control de acceso por rol, CRUD con sus validaciones,
+descuento y reintegro de stock, correlativos de venta bajo colisión, códigos de
+barras, gestión de usuarios, cálculo de métricas y generación del PDF. Corre sobre SQLite en memoria, así que
 no toca la base de datos de desarrollo.
 
 Para ejecutar un archivo concreto:

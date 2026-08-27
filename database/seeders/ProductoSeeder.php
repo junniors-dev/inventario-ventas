@@ -81,16 +81,35 @@ class ProductoSeeder extends Seeder
             ['Cuidado personal', 'Papel facial Elite 100u', 4.90, 26, 10],
         ];
 
-        foreach ($productos as [$categoria, $nombre, $precio, $stock, $minimo]) {
+        foreach ($productos as $indice => [$categoria, $nombre, $precio, $stock, $minimo]) {
             Producto::updateOrCreate(
                 ['nombre' => $nombre],
                 [
                     'categoria_id' => $categorias[$categoria],
+                    // Uno de cada nueve queda sin código, como los productos
+                    // a granel o de empaque propio de una bodega real.
+                    'codigo_barras' => $indice % 9 === 0 ? null : $this->ean13($indice),
                     'precio' => $precio,
                     'stock' => $stock,
                     'stock_minimo' => $minimo,
                 ],
             );
         }
+    }
+
+    /**
+     * Construye un EAN-13 válido con prefijo de Perú (775) y su dígito verificador.
+     */
+    private function ean13(int $indice): string
+    {
+        // 3 dígitos de prefijo + 9 de producto = 12; el verificador completa 13.
+        $base = '775'.str_pad((string) ($indice + 1), 9, '0', STR_PAD_LEFT);
+
+        $suma = 0;
+        foreach (str_split($base) as $posicion => $digito) {
+            $suma += (int) $digito * ($posicion % 2 === 0 ? 1 : 3);
+        }
+
+        return $base.((10 - $suma % 10) % 10);
     }
 }

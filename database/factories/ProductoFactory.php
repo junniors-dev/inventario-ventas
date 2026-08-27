@@ -23,6 +23,7 @@ class ProductoFactory extends Factory
         return [
             'categoria_id' => Categoria::factory(),
             'nombre' => ucfirst($this->faker->unique()->words(2, true)),
+            'codigo_barras' => $this->faker->unique()->ean13(),
             'precio' => $this->faker->randomFloat(2, 1, 60),
             'stock' => $this->faker->numberBetween($stockMinimo + 1, 80),
             'stock_minimo' => $stockMinimo,
@@ -45,5 +46,13 @@ class ProductoFactory extends Factory
     public function agotado(): static
     {
         return $this->state(fn () => ['stock' => 0]);
+    }
+
+    /**
+     * Producto sin código de barras (venta a granel, empaque propio).
+     */
+    public function sinCodigoBarras(): static
+    {
+        return $this->state(fn () => ['codigo_barras' => null]);
     }
 }

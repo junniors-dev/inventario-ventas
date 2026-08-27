@@ -16,7 +16,10 @@ class ProductoController extends Controller
         $productos = Producto::query()
             ->with('categoria')
             ->when($request->string('buscar')->trim()->value(), function ($query, string $buscar) {
-                $query->where('nombre', 'like', "%{$buscar}%");
+                $query->where(function ($query) use ($buscar) {
+                    $query->where('nombre', 'like', "%{$buscar}%")
+                        ->orWhere('codigo_barras', $buscar);
+                });
             })
             ->when($request->integer('categoria_id'), function ($query, int $categoriaId) {
                 $query->where('categoria_id', $categoriaId);

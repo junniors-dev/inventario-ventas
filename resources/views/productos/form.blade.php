@@ -15,6 +15,17 @@
     </div>
 
     <div>
+        <x-input-label for="codigo_barras" value="Código de barras (opcional)" />
+        <x-text-input id="codigo_barras" name="codigo_barras" type="text" class="mt-1 block w-full font-mono"
+                      :value="old('codigo_barras', $producto?->codigo_barras)"
+                      autocomplete="off" placeholder="Escanéalo aquí o escríbelo" />
+        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+            Con el cursor en este campo, dispara el lector para capturarlo.
+        </p>
+        <x-input-error :messages="$errors->get('codigo_barras')" class="mt-2" />
+    </div>
+
+    <div>
         <x-input-label for="categoria_id" value="Categoría" />
         <select id="categoria_id" name="categoria_id" required
                 class="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-emerald-500 focus:ring-emerald-500 rounded-md shadow-sm">

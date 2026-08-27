@@ -21,7 +21,7 @@
                 <div class="flex-1 min-w-48">
                     <label for="buscar" class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Buscar</label>
                     <input id="buscar" name="buscar" type="search" value="{{ request('buscar') }}"
-                           placeholder="Nombre del producto…"
+                           placeholder="Nombre o código de barras…" autocomplete="off"
                            class="w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-emerald-500 focus:ring-emerald-500 rounded-md shadow-sm text-sm">
                 </div>
                 <div class="min-w-44">
@@ -73,7 +73,12 @@
                             <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
                                 @foreach ($productos as $producto)
                                     <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/40">
-                                        <td class="px-6 py-4 font-medium text-gray-900 dark:text-gray-100">{{ $producto->nombre }}</td>
+                                        <td class="px-6 py-4">
+                                            <span class="font-medium text-gray-900 dark:text-gray-100">{{ $producto->nombre }}</span>
+                                            @if ($producto->codigo_barras)
+                                                <span class="block font-mono text-xs text-gray-400">{{ $producto->codigo_barras }}</span>
+                                            @endif
+                                        </td>
                                         <td class="px-6 py-4">
                                             <span class="inline-flex rounded-full bg-gray-100 dark:bg-gray-700 px-2.5 py-1 text-xs font-medium text-gray-700 dark:text-gray-300">
                                                 {{ $producto->categoria->nombre }}
