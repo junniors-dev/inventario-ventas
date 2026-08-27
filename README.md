@@ -12,6 +12,12 @@ hecho a mano, ahora aplicando las convenciones y herramientas del framework.
 ![Tests](https://github.com/junniors-dev/inventario-ventas/actions/workflows/tests.yml/badge.svg)
 ![Tests](https://img.shields.io/badge/tests-173%20passing-success)
 
+## Vistazo
+
+| Panel | Punto de venta |
+| --- | --- |
+| ![Panel de indicadores](docs/capturas/dashboard.png) | ![Pantalla de venta](docs/capturas/punto-de-venta.png) |
+
 ---
 
 ## Funcionalidades
