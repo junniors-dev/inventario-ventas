@@ -1,0 +1,265 @@
+# Sistema de Inventario y Ventas
+
+Aplicación web para que un negocio pequeño gestione su inventario, registre ventas
+y consulte reportes. Construida con **Laravel 12**, **MySQL** y **Tailwind CSS**.
+
+Es la reconstrucción de un CRUD que originalmente escribí en PHP plano con un MVC
+hecho a mano, ahora aplicando las convenciones y herramientas del framework.
+
+![Laravel](https://img.shields.io/badge/Laravel-12-FF2D20?logo=laravel&logoColor=white)
+![PHP](https://img.shields.io/badge/PHP-8.2+-777BB4?logo=php&logoColor=white)
+![MySQL](https://img.shields.io/badge/MySQL-8-4479A1?logo=mysql&logoColor=white)
+![Tests](https://img.shields.io/badge/tests-82%20passing-success)
+
+---
+
+## Funcionalidades
+
+### Inventario
+- CRUD de productos y categorías con validación en Form Requests.
+- Búsqueda por nombre, filtro por categoría y filtro de stock bajo.
+- **Borrado lógico** (soft deletes): eliminar un producto lo oculta del catálogo
+  pero conserva intacto el historial de ventas que lo referencia.
+- Alertas visuales cuando el stock cae por debajo del mínimo configurado.
+
+### Ventas
+- Pantalla de venta tipo POS: buscador, filtros por categoría, carrito con
+  cantidades y total calculado en vivo.
+- Métodos de pago: efectivo, Yape, Plin y transferencia.
+- Correlativo legible por comprobante (`VTA-2026-000147`).
+- **Anulación de ventas** que reintegra el stock; la venta se conserva en el
+  historial con su fecha de anulación en lugar de borrarse.
+- Descarga del comprobante en **PDF**.
+
+### Reportes
+- Dashboard con ventas del mes y variación frente al mes anterior.
+- Gráfico de ventas de los últimos 8 meses y ranking de productos más vendidos
+  (Chart.js).
+- Listado de productos por debajo del stock mínimo.
+
+### Usuarios y permisos
+
+| Rol | Puede |
+| --- | --- |
+| **Administrador** | Todo: dashboard, productos, categorías, ver y anular cualquier venta |
+| **Vendedor** | Registrar ventas y consultar únicamente las suyas |
+
+---
+
+## Decisiones técnicas
+
+Algunos puntos que van más allá de un CRUD básico:
+
+**Control de concurrencia en el descuento de stock.** Registrar una venta ocurre
+dentro de una transacción con bloqueo pesimista sobre las filas de los productos
+implicados:
+
+```php
+DB::transaction(function () {
+    $productos = Producto::whereIn('id', $ids)
+        ->orderBy('id')      // orden estable: evita interbloqueos
+        ->lockForUpdate()    // bloqueo pesimista
+        ->get();
+    // validar stock, crear el detalle y descontar
+});
+```
+
+Sin esto, dos cajas vendiendo el mismo producto a la vez podrían leer el mismo
+stock y venderlo dos veces. El bloqueo obliga a la segunda transacción a esperar
+y releer el valor real.
+
+**Dinero en `decimal`, nunca en `float`.** Precios y totales usan `decimal(10,2)`
+en la base de datos y casts `decimal:2` en los modelos, para evitar los errores
+de redondeo del punto flotante.
+
+**El precio se congela en cada línea de venta.** `detalle_ventas` guarda el
+`precio_unitario` del momento de la operación, así que cambiar el precio de un
+producto no altera las ventas ya registradas.
+
+**Autorización en dos niveles.** El middleware `role` protege secciones enteras
+por rol; las policies deciden sobre registros concretos (por ejemplo, si *esta*
+venta puede anularse y quién puede verla).
+
+**Enums nativos de PHP** para roles, métodos de pago y estados de venta, casteados
+directamente en los modelos.
+
+**Detección de N+1 en desarrollo.** `Model::preventLazyLoading()` está activo
+fuera de producción, de modo que una relación sin eager loading lanza una
+excepción durante el desarrollo en lugar de degradar el rendimiento en silencio.
+
+---
+
+## Tecnologías
+
+| Capa | Herramienta |
+| --- | --- |
+| Framework | Laravel 12 |
+| Lenguaje | PHP 8.2+ |
+| Base de datos | MySQL 8 |
+| Autenticación | Laravel Breeze (stack Blade) |
+| Vistas | Blade + Tailwind CSS |
+| Interactividad | Alpine.js |
+| Gráficos | Chart.js |
+| PDF | barryvdh/laravel-dompdf |
+| Tests | Pest |
+| Build | Vite |
+
+---
+
+## Instalación
+
+### Requisitos
+
+- PHP 8.2 o superior
+- Composer
+- MySQL 8 (o MariaDB)
+- Node.js 18+ y npm
+
+### Pasos
+
+```bash
+git clone https://github.com/TU-USUARIO/inventario-ventas.git
+cd inventario-ventas
+```
+
+Instala las dependencias:
+
+```bash
+composer install
+npm install
+```
+
+Copia el archivo de entorno y genera la clave de la aplicación:
+
+```bash
+cp .env.example .env
+php artisan key:generate
+```
+
+Crea la base de datos:
+
+```bash
+mysql -u root -e "CREATE DATABASE inventario_ventas CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+```
+
+Ajusta las credenciales en `.env` si tu MySQL no usa el usuario `root` sin
+contraseña:
+
+```dotenv
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=inventario_ventas
+DB_USERNAME=root
+DB_PASSWORD=
+```
+
+Ejecuta las migraciones junto con los datos de demostración:
+
+```bash
+php artisan migrate --seed
+```
+
+Compila los assets y levanta el servidor:
+
+```bash
+npm run build
+php artisan serve
+```
+
+La aplicación queda disponible en `http://127.0.0.1:8000`.
+
+> Durante el desarrollo puedes usar `npm run dev` en otra terminal para tener
+> recarga automática de estilos y scripts.
+
+### Cuentas de demostración
+
+El seeder crea estas cuentas junto con 54 productos y unas 170 ventas repartidas
+en los últimos 8 meses, de modo que el dashboard tenga datos desde el primer
+arranque:
+
+| Rol | Correo | Contraseña |
+| --- | --- | --- |
+| Administrador | `admin@bodega.pe` | `password` |
+| Vendedora | `maria@bodega.pe` | `password` |
+| Vendedor | `carlos@bodega.pe` | `password` |
+
+---
+
+## Tests
+
+```bash
+php artisan test
+```
+
+La suite cubre 82 casos: control de acceso por rol, CRUD con sus validaciones,
+descuento y reintegro de stock, correlativos de venta, cálculo de métricas y
+generación del PDF. Corre sobre SQLite en memoria, así que no toca la base de
+datos de desarrollo.
+
+Para ejecutar un archivo concreto:
+
+```bash
+php artisan test --filter=VentaTest
+```
+
+---
+
+## Estructura del proyecto
+
+```
+app/
+├── Actions/              Operaciones de negocio (registrar/anular venta, métricas)
+├── Enums/                Role, MetodoPago, EstadoVenta
+├── Exceptions/           StockInsuficienteException
+├── Http/
+│   ├── Controllers/
+│   ├── Middleware/       EnsureUserHasRole
+│   └── Requests/         Form Requests con las reglas de validación
+├── Models/
+└── Policies/             VentaPolicy
+database/
+├── factories/
+├── migrations/
+└── seeders/
+resources/views/
+├── components/           kpi-card, stock-badge, flash
+├── categorias/
+├── productos/
+└── ventas/               incluye la vista del ticket PDF
+tests/Feature/
+```
+
+La lógica de negocio vive en clases de acción en lugar de los controladores, que
+se limitan a coordinar la petición HTTP, la autorización y la respuesta.
+
+---
+
+## Modelo de datos
+
+```
+categorias ──< productos ──< detalle_ventas >── ventas >── users
+                (soft delete)
+```
+
+- Una categoría agrupa muchos productos.
+- Una venta tiene muchas líneas de detalle; cada línea apunta a un producto y
+  guarda la cantidad y el precio unitario del momento.
+- Las claves foráneas usan `restrictOnDelete` hacia productos y usuarios para
+  proteger el historial, y `cascadeOnDelete` entre venta y sus detalles.
+
+---
+
+## Posibles ampliaciones
+
+- Buscador de productos con resultados en vivo en la pantalla de venta.
+- Notificaciones por correo cuando un producto llega al stock mínimo.
+- Módulo de compras a proveedores para registrar entradas de inventario.
+- Exportación de reportes a Excel.
+- API REST con Sanctum para una app móvil de caja.
+
+---
+
+## Licencia
+
+MIT.
